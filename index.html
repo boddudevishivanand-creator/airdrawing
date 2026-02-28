@@ -1,0 +1,1597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AirDrawing PRO</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@700;900&display=swap');
+:root{
+  --bg:#07070e; --panel:#0f0f1a; --border:#1a1a2e;
+  --accent:#ff6b35; --a2:#00d4ff; --green:#39ff88;
+  --purple:#b44fff; --yellow:#ffe135;
+  --text:#eaeaf5; --muted:#4a4a6a;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:'Space Mono',monospace;display:flex;flex-direction:column}
+
+/* Header */
+header{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;
+  border-bottom:1px solid var(--border);background:rgba(7,7,14,.98);flex-shrink:0;flex-wrap:wrap;gap:8px;z-index:100}
+.logo{font-family:'Syne',sans-serif;font-weight:900;font-size:1.1rem;letter-spacing:-1px}
+.logo b{color:var(--accent)}.logo em{color:var(--a2);font-style:normal}
+.pills{display:flex;gap:6px;flex-wrap:wrap}
+.pill{display:flex;align-items:center;gap:4px;background:var(--panel);border:1px solid var(--border);
+  padding:3px 9px;border-radius:20px;font-size:.58rem;color:var(--muted)}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--muted);flex-shrink:0;transition:all .3s}
+.dot.g{background:var(--green);box-shadow:0 0 6px var(--green)}
+.dot.o{background:var(--accent);box-shadow:0 0 6px var(--accent)}
+.dot.b{background:var(--a2);box-shadow:0 0 6px var(--a2)}
+.badge{font-size:.52rem;padding:2px 8px;border-radius:10px;border:1px solid var(--border);color:var(--muted)}
+.badge.m{border-color:var(--green);color:var(--green)}
+.badge.c{border-color:var(--a2);color:var(--a2)}
+
+/* Layout */
+.main{flex:1;display:flex;overflow:hidden;min-height:0}
+
+/* Sidebar */
+.sidebar{width:192px;border-right:1px solid var(--border);background:var(--panel);
+  display:flex;flex-direction:column;padding:10px;gap:12px;overflow-y:auto;flex-shrink:0;
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.sec{font-size:.5rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:4px}
+
+/* Colors */
+.colors{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.cb{width:100%;aspect-ratio:1;border-radius:5px;border:2px solid transparent;cursor:pointer;transition:transform .1s,border-color .1s}
+.cb:hover{transform:scale(1.18)}
+.cb.on{border-color:#fff;transform:scale(1.08)}
+.custom-row{display:flex;align-items:center;gap:6px;margin-top:4px}
+#customColor{width:28px;height:22px;border:1px solid var(--border);border-radius:4px;cursor:pointer;padding:1px;background:none}
+.custom-row span{font-size:.56rem;color:var(--muted)}
+
+/* Brush tabs */
+.btabs{display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-bottom:2px}
+.btab{padding:5px 3px;border:1px solid var(--border);background:var(--bg);color:var(--muted);
+  font-family:'Space Mono',monospace;font-size:.5rem;border-radius:5px;cursor:pointer;text-align:center;transition:all .12s}
+.btab:hover,.btab.on{border-color:var(--accent);color:var(--accent);background:rgba(255,107,53,.08)}
+
+/* Sliders */
+.srow{display:flex;flex-direction:column;gap:4px}
+.slbl{display:flex;justify-content:space-between;font-size:.56rem;color:var(--muted)}
+input[type=range]{-webkit-appearance:none;width:100%;height:3px;background:var(--border);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;
+  border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 5px rgba(255,107,53,.5)}
+
+/* Buttons */
+.btn{padding:6px 9px;border:1px solid var(--border);background:var(--bg);color:var(--text);
+  font-family:'Space Mono',monospace;font-size:.58rem;border-radius:6px;cursor:pointer;
+  display:flex;align-items:center;gap:5px;width:100%;margin-bottom:4px;
+  transition:all .12s;text-align:left;white-space:nowrap}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.on{border-color:var(--a2);color:var(--a2);background:rgba(0,212,255,.06)}
+.btn.danger:hover{border-color:#ff4466;color:#ff4466}
+
+/* Gesture guide */
+.gi{display:flex;align-items:flex-start;gap:6px;font-size:.56rem;color:var(--muted);line-height:1.5;margin-bottom:4px}
+.ge{font-size:.95rem;flex-shrink:0;width:20px;text-align:center}
+
+/* BG tabs */
+.bgtabs{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}
+.bgtab{padding:4px 2px;border:1px solid var(--border);background:var(--bg);color:var(--muted);
+  font-family:'Space Mono',monospace;font-size:.5rem;border-radius:5px;cursor:pointer;text-align:center;transition:all .12s}
+.bgtab:hover,.bgtab.on{border-color:var(--green);color:var(--green);background:rgba(57,255,136,.06)}
+
+/* Canvas area */
+.carea{flex:1;position:relative;overflow:hidden;background:#05050c}
+canvas{position:absolute;inset:0}
+#cvBg{z-index:1;pointer-events:none}
+#cvDraw{z-index:2;cursor:none;touch-action:none}
+#cvFx{z-index:3;pointer-events:none}
+#cvSym{z-index:4;pointer-events:none}
+#cvHand{z-index:5;pointer-events:none}
+
+/* Cursor ring */
+#ring{position:absolute;border-radius:50%;border:2px solid var(--a2);pointer-events:none;z-index:10;
+  transform:translate(-50%,-50%);opacity:0;transition:width .08s,height .08s,border-color .1s,opacity .15s,box-shadow .1s}
+#ring.v{opacity:1}
+#ring.d{border-color:var(--accent);box-shadow:0 0 14px var(--accent)}
+
+/* Video */
+#videoEl{display:none}
+#videoPrev{position:absolute;bottom:10px;left:10px;width:110px;border-radius:7px;
+  border:1px solid var(--border);z-index:8;display:none;transform:scaleX(-1);opacity:.5}
+
+/* Finger HUD */
+#fingerHUD{position:absolute;bottom:12px;right:12px;z-index:20;display:none;
+  background:rgba(7,7,18,.9);border:1px solid rgba(0,212,255,.2);border-radius:12px;
+  padding:11px 13px;backdrop-filter:blur(12px);min-width:205px}
+.fhud-title{font-family:'Syne',sans-serif;font-weight:700;font-size:.6rem;color:var(--a2);
+  letter-spacing:1px;margin-bottom:9px;display:flex;align-items:center;gap:5px}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 6px var(--green);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+.fingers-row{display:flex;gap:7px;justify-content:center;margin-bottom:10px}
+.finger-col{display:flex;flex-direction:column;align-items:center;gap:4px}
+.finger-name{font-size:.42rem;color:var(--muted);text-transform:uppercase}
+.fv{width:17px;height:50px;border-radius:8px;border:1.5px solid rgba(255,255,255,.1);
+  position:relative;overflow:hidden;background:rgba(255,255,255,.03);transition:border-color .15s}
+.fv.up{border-color:var(--green)}
+.fv.drawing{border-color:var(--accent);box-shadow:0 0 8px var(--accent)}
+.fv-fill{position:absolute;bottom:0;left:0;right:0;border-radius:0 0 6px 6px;transition:height .1s,background .1s}
+.fv:not(.up):not(.drawing) .fv-fill{height:28%;background:rgba(80,80,120,.4)}
+.fv.up .fv-fill{height:100%;background:rgba(57,255,136,.4)}
+.fv.drawing .fv-fill{height:100%;background:rgba(255,107,53,.55)}
+.fv-dot{position:absolute;top:3px;left:50%;transform:translateX(-50%);
+  width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.12);transition:all .12s}
+.fv.up .fv-dot{background:var(--green);box-shadow:0 0 5px var(--green)}
+.fv.drawing .fv-dot{background:var(--accent);box-shadow:0 0 7px var(--accent)}
+.gesture-box{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+  border-radius:8px;padding:7px 9px;margin-bottom:7px}
+.gname{font-family:'Syne',sans-serif;font-weight:800;font-size:.9rem;color:#fff;
+  text-align:center;margin-bottom:2px;transition:color .2s}
+.gdesc{font-size:.5rem;color:var(--muted);text-align:center}
+.conf-row{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.conf-lbl{font-size:.5rem;color:var(--muted);white-space:nowrap}
+.conf-track{flex:1;height:4px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden}
+.conf-fill{height:100%;border-radius:2px;transition:width .15s,background .15s}
+.conf-pct{font-size:.5rem;color:var(--green);min-width:24px;text-align:right}
+.coords-row{display:flex;gap:5px;margin-bottom:7px}
+.coord-box{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+  border-radius:5px;padding:3px 5px;text-align:center}
+.coord-lbl{display:block;font-size:.4rem;color:var(--muted);margin-bottom:1px}
+.coord-val{font-size:.56rem;color:var(--a2);font-weight:700}
+.spd-row{display:flex;align-items:center;gap:7px}
+.spd-lbl{font-size:.5rem;color:var(--muted)}
+.spd-track{flex:1;height:3px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden}
+.spd-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--purple),var(--accent));transition:width .08s}
+
+/* AI Panel */
+#aiPanel{position:absolute;top:12px;right:12px;z-index:20;width:195px;display:none}
+.ai-box{background:rgba(13,13,26,.93);border:1px solid var(--a2);border-radius:12px;
+  padding:11px 13px;backdrop-filter:blur(10px)}
+.ai-title{font-family:'Syne',sans-serif;font-weight:700;font-size:.68rem;color:var(--a2);
+  margin-bottom:7px;display:flex;align-items:center;gap:5px}
+.ai-dots span{animation:blink 1.2s infinite;opacity:0}
+.ai-dots span:nth-child(2){animation-delay:.2s}
+.ai-dots span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:0}40%{opacity:1}}
+.ai-guess{font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:#fff;
+  text-align:center;padding:5px 0;line-height:1.2}
+.ai-btn{width:100%;margin-top:7px;padding:5px;border:1px solid var(--a2);background:rgba(0,212,255,.07);
+  color:var(--a2);font-family:'Space Mono',monospace;font-size:.58rem;border-radius:6px;cursor:pointer;transition:all .15s}
+.ai-btn:hover{background:rgba(0,212,255,.17)}
+@keyframes glow{0%,100%{box-shadow:0 0 8px rgba(0,212,255,.3)}50%{box-shadow:0 0 20px rgba(0,212,255,.6)}}
+.ai-box.thinking{animation:glow 1.2s infinite}
+
+/* Challenge panel */
+#challengePanel{position:absolute;top:12px;left:50%;transform:translateX(-50%);
+  background:rgba(13,13,26,.92);border:1px solid var(--yellow);border-radius:10px;
+  padding:7px 18px;font-size:.65rem;color:var(--yellow);display:none;z-index:20;
+  font-family:'Syne',sans-serif;font-weight:700;text-align:center;white-space:nowrap}
+
+/* Toast */
+#toast{position:absolute;bottom:14px;left:50%;transform:translateX(-50%) translateY(10px);
+  background:rgba(13,13,26,.97);border:1px solid var(--border);padding:6px 14px;
+  border-radius:20px;font-size:.65rem;z-index:60;opacity:0;
+  transition:opacity .22s,transform .22s;white-space:nowrap;pointer-events:none}
+#toast.s{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Rating overlay */
+#ovRating{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+  z-index:40;background:rgba(5,5,12,.92);backdrop-filter:blur(14px)}
+.rating-box{background:var(--panel);border:1px solid var(--border);border-radius:18px;
+  padding:28px 32px;max-width:420px;width:90%;display:flex;flex-direction:column;align-items:center;gap:14px;
+  box-shadow:0 0 60px rgba(0,0,0,.6)}
+.rating-title{font-family:'Syne',sans-serif;font-weight:900;font-size:1.3rem;text-align:center;line-height:1.2}
+.rating-subtitle{font-size:.65rem;color:var(--muted);text-align:center}
+.stars{display:flex;gap:6px;font-size:2rem}
+.star{transition:all .3s;filter:grayscale(1);opacity:.3}
+.star.on{filter:grayscale(0);opacity:1;animation:starPop .4s ease both}
+@keyframes starPop{0%{transform:scale(0)}60%{transform:scale(1.3)}100%{transform:scale(1)}}
+.score-num{font-family:'Syne',sans-serif;font-weight:900;font-size:3rem;line-height:1}
+.score-label{font-size:.6rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+.rating-feedback{font-size:.72rem;color:var(--text);text-align:center;line-height:1.7;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+  border-radius:10px;padding:12px 16px;width:100%}
+.rating-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+.rating-metric{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+  border-radius:8px;padding:8px 10px;text-align:center}
+.metric-label{font-size:.5rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}
+.metric-bar{height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;margin-bottom:4px}
+.metric-fill{height:100%;border-radius:2px;transition:width .6s ease}
+.metric-val{font-size:.65rem;font-weight:700}
+.rating-btns{display:flex;gap:8px;width:100%}
+.rbtn{flex:1;padding:9px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;
+  font-size:.75rem;cursor:pointer;transition:all .15s;border:1px solid var(--border)}
+.rbtn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.rbtn.primary:hover{box-shadow:0 0 20px rgba(255,107,53,.4)}
+.rbtn.secondary{background:transparent;color:var(--muted)}
+.rbtn.secondary:hover{border-color:var(--muted);color:var(--text)}
+.rating-analyzing{display:flex;flex-direction:column;align-items:center;gap:12px}
+
+/* Overlays */
+.ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;z-index:30;gap:16px;backdrop-filter:blur(8px)}
+#ovStart{background:rgba(5,5,12,.94)}
+#ovLoad{background:rgba(5,5,12,.97);display:none}
+#ovIframe{background:rgba(5,5,12,.95);display:none}
+.otitle{font-family:'Syne',sans-serif;font-size:clamp(1.5rem,4vw,2.5rem);font-weight:900;
+  text-align:center;line-height:1.1}
+.otitle b{color:var(--accent)}.otitle em{color:var(--a2);font-style:normal}
+.osub{font-size:.68rem;color:var(--muted);text-align:center;max-width:340px;line-height:1.7}
+.cards{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;
+  padding:18px 20px;cursor:pointer;transition:all .2s;text-align:center;width:148px;user-select:none}
+.card:hover{transform:translateY(-4px)}
+.card.m:hover{border-color:var(--green);box-shadow:0 8px 26px rgba(57,255,136,.15)}
+.card.c:hover{border-color:var(--a2);box-shadow:0 8px 26px rgba(0,212,255,.18)}
+.cemoji{font-size:2rem;margin-bottom:7px}
+.cname{font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;margin-bottom:4px}
+.cdesc{font-size:.55rem;color:var(--muted);line-height:1.5}
+#errNote{font-size:.58rem;color:var(--muted);text-align:center;max-width:320px}
+.open-box{background:var(--panel);border:1px solid var(--a2);border-radius:14px;
+  padding:22px 26px;max-width:350px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.open-box h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:var(--a2);text-align:center}
+.open-box p,.open-box ol{font-size:.62rem;color:var(--muted);line-height:1.8}
+.open-box ol{text-align:left;padding-left:14px}
+.open-box ol b{color:var(--text)}
+.bigbtn{padding:11px 26px;border:none;border-radius:40px;font-family:'Syne',sans-serif;
+  font-weight:700;font-size:.9rem;cursor:pointer;transition:all .2s}
+.bigbtn.g{background:var(--green);color:#000;box-shadow:0 0 20px rgba(57,255,136,.35)}
+.bigbtn.g:hover{transform:scale(1.05);box-shadow:0 0 34px rgba(57,255,136,.5)}
+.back-link{font-size:.58rem;color:var(--muted);cursor:pointer;text-decoration:underline}
+.back-link:hover{color:var(--text)}
+.spinner{width:38px;height:38px;border:3px solid var(--border);border-top-color:var(--accent);
+  border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ltxt{font-size:.7rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">✋ Air<b>Drawing</b> <em>PRO</em></div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <button id="homeBtn" style="display:none;align-items:center;gap:5px;padding:5px 12px;
+      border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--muted);
+      border-radius:20px;font-family:'Space Mono',monospace;font-size:.58rem;cursor:pointer;
+      transition:all .2s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+      onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">🏠 Home</button>
+    <div class="pills">
+      <div class="pill"><div class="dot" id="d1"></div><span id="s1">Waiting</span></div>
+      <div class="pill"><div class="dot" id="d2"></div><span id="s2">Ready</span></div>
+      <div class="pill"><div class="dot" id="d3"></div><span id="s3">Pen up</span></div>
+      <span class="badge" id="badge">—</span>
+    </div>
+  </div>
+</header>
+
+<div class="main">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div>
+      <div class="sec">Colors</div>
+      <div class="colors" id="palette"></div>
+      <div class="custom-row">
+        <input type="color" id="customColor" value="#ff6b35" title="Custom">
+        <span>Custom</span>
+      </div>
+    </div>
+    <div>
+      <div class="sec">Brush</div>
+      <div class="btabs" id="brushTabs">
+        <button class="btab on" data-b="normal">✏️ Normal</button>
+        <button class="btab" data-b="neon">💫 Neon</button>
+        <button class="btab" data-b="rainbow">🌈 Rainbow</button>
+        <button class="btab" data-b="spray">🎨 Spray</button>
+        <button class="btab" data-b="glow">✨ Glow</button>
+        <button class="btab" data-b="calli">🖋️ Calli</button>
+      </div>
+    </div>
+    <div>
+      <div class="sec">Size</div>
+      <div class="srow">
+        <div class="slbl"><span>Thin</span><span id="bVal">8px</span><span>Thick</span></div>
+        <input type="range" id="bSize" min="2" max="80" value="8">
+      </div>
+    </div>
+    <div>
+      <div class="sec">Opacity</div>
+      <div class="srow">
+        <div class="slbl"><span>Ghost</span><span id="oVal">100%</span><span>Solid</span></div>
+        <input type="range" id="oSlider" min="5" max="100" value="100">
+      </div>
+    </div>
+    <div>
+      <div class="sec">Background</div>
+      <div class="bgtabs" id="bgTabs">
+        <button class="bgtab on" data-bg="grid">Grid</button>
+        <button class="bgtab" data-bg="dots">Dots</button>
+        <button class="bgtab" data-bg="stars">Stars</button>
+        <button class="bgtab" data-bg="dark">Dark</button>
+        <button class="bgtab" data-bg="paper">Paper</button>
+        <button class="bgtab" data-bg="neon">Neon</button>
+      </div>
+    </div>
+    <div>
+      <div class="sec">FX</div>
+      <button class="btn" id="symBtn">🔁 Symmetry: Off</button>
+      <button class="btn" id="sym4Btn">✡️ 4-Way: Off</button>
+      <button class="btn" id="ptBtn">✨ Particles: Off</button>
+    </div>
+    <div>
+      <div class="sec">Tools</div>
+      <button class="btn" id="eraserBtn">✏️ Eraser</button>
+      <button class="btn" id="fillBtn">🪣 Fill</button>
+      <button class="btn" id="skelBtn" style="display:none">👋 Skeleton: ON</button>
+      <button class="btn danger" id="clearBtn">🗑️ Clear</button>
+      <button class="btn" id="undoBtn">↩️ Undo</button>
+      <button class="btn" id="saveBtn">💾 Save PNG</button>
+    </div>
+    <div>
+      <div class="sec">AI</div>
+      <button class="btn" id="aiBtn">🤖 AI Guess</button>
+      <button class="btn" id="chalBtn">🎯 Challenge</button>
+    </div>
+    <div id="mouseGuide">
+      <div class="sec">Controls</div>
+      <div class="gi"><span class="ge">🖱️</span><span>Click & drag</span></div>
+      <div class="gi"><span class="ge">📱</span><span>Touch & drag</span></div>
+      <div class="gi"><span class="ge">⌨️</span><span>Z=undo C=clear E=eraser</span></div>
+    </div>
+    <div id="camGuide" style="display:none">
+      <div class="sec">Gestures</div>
+      <div class="gi"><span class="ge">☝️</span><span>Index up → draw</span></div>
+      <div class="gi"><span class="ge">✌️</span><span>Two fingers → lift</span></div>
+      <div class="gi"><span class="ge">✊</span><span>Hold fist → clear</span></div>
+      <div class="gi"><span class="ge">🤏</span><span>Pinch → resize</span></div>
+    </div>
+  </div>
+
+  <!-- CANVAS AREA -->
+  <div class="carea" id="carea">
+    <canvas id="cvBg"></canvas>
+    <canvas id="cvDraw"></canvas>
+    <canvas id="cvFx"></canvas>
+    <canvas id="cvSym"></canvas>
+    <canvas id="cvHand"></canvas>
+    <div id="ring"></div>
+
+    <!-- Finger HUD -->
+    <div id="fingerHUD">
+      <div class="fhud-title"><span class="live-dot"></span>HAND TRACKING</div>
+      <div class="fingers-row">
+        <div class="finger-col"><div class="fv" id="fv0"><div class="fv-fill"></div><div class="fv-dot"></div></div><div class="finger-name">Thumb</div></div>
+        <div class="finger-col"><div class="fv" id="fv1"><div class="fv-fill"></div><div class="fv-dot"></div></div><div class="finger-name">Index</div></div>
+        <div class="finger-col"><div class="fv" id="fv2"><div class="fv-fill"></div><div class="fv-dot"></div></div><div class="finger-name">Middle</div></div>
+        <div class="finger-col"><div class="fv" id="fv3"><div class="fv-fill"></div><div class="fv-dot"></div></div><div class="finger-name">Ring</div></div>
+        <div class="finger-col"><div class="fv" id="fv4"><div class="fv-fill"></div><div class="fv-dot"></div></div><div class="finger-name">Pinky</div></div>
+      </div>
+      <div class="gesture-box">
+        <div class="gname" id="gname">—</div>
+        <div class="gdesc" id="gdesc">Show your hand</div>
+      </div>
+      <div class="conf-row">
+        <span class="conf-lbl">Conf</span>
+        <div class="conf-track"><div class="conf-fill" id="confFill" style="width:0%"></div></div>
+        <span class="conf-pct" id="confPct">0%</span>
+      </div>
+      <div class="coords-row">
+        <div class="coord-box"><span class="coord-lbl">X</span><span class="coord-val" id="tipX">—</span></div>
+        <div class="coord-box"><span class="coord-lbl">Y</span><span class="coord-val" id="tipY">—</span></div>
+        <div class="coord-box"><span class="coord-lbl">Z</span><span class="coord-val" id="tipZ">—</span></div>
+      </div>
+      <div class="spd-row">
+        <span class="spd-lbl">Speed</span>
+        <div class="spd-track"><div class="spd-fill" id="spdFill" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- AI Panel -->
+    <div id="aiPanel">
+      <div class="ai-box" id="aiBox">
+        <div class="ai-title">🤖 AI Guess</div>
+        <div id="aiContent"><span style="font-size:.6rem;color:var(--muted)">Click Guess to analyze your drawing</span></div>
+        <button class="ai-btn" id="aiClose">✕ Close</button>
+      </div>
+    </div>
+
+    <!-- Challenge -->
+    <div id="challengePanel"></div>
+
+    <!-- Video -->
+    <video id="videoEl" autoplay playsinline></video>
+    <video id="videoPrev" autoplay playsinline muted></video>
+
+    <!-- RATING overlay -->
+    <div id="ovRating">
+      <div class="rating-box" id="ratingBox">
+        <!-- filled by JS -->
+      </div>
+    </div>
+
+    <!-- START overlay -->
+    <div class="ov" id="ovStart">
+      <div class="otitle">✋ Air<b>Drawing</b> <em>PRO</em></div>
+      <div class="osub">AI hand tracking + special brushes + symmetry + AI guesses your drawings!</div>
+      <div class="cards">
+        <div class="card m" id="mouseMode">
+          <div class="cemoji">🖱️</div>
+          <div class="cname">Mouse / Touch</div>
+          <div class="cdesc">Works instantly, no permissions needed.</div>
+        </div>
+        <div class="card c" id="camMode">
+          <div class="cemoji">✋</div>
+          <div class="cname">Hand Tracking</div>
+          <div class="cdesc">AI tracks your hand. Open file in Chrome directly.</div>
+        </div>
+      </div>
+      <div id="errNote"></div>
+    </div>
+
+    <!-- IFRAME overlay -->
+    <div class="ov" id="ovIframe">
+      <div class="open-box">
+        <div style="font-size:2rem">🔒</div>
+        <h2>Camera Needs Direct Browser</h2>
+        <p>Camera is blocked in iframes. To use hand tracking:</p>
+        <ol>
+          <li><b>Download</b> the file below</li>
+          <li><b>Open</b> <code style="color:var(--a2)">AirDrawing.html</code> in Chrome</li>
+          <li><b>Allow camera</b> when prompted</li>
+        </ol>
+        <button class="bigbtn g" id="downloadBtn">⬇️ Download AirDrawing.html</button>
+        <span class="back-link" id="backBtn">↩ Use Mouse mode</span>
+      </div>
+    </div>
+
+    <!-- LOADING overlay -->
+    <div class="ov" id="ovLoad">
+      <div class="spinner"></div>
+      <div class="ltxt" id="loadTxt">Loading…</div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+<script>
+// ─────────────────────────────────────────────────────────────
+// 1. CANVAS SETUP
+// ─────────────────────────────────────────────────────────────
+const carea   = document.getElementById('carea');
+const cvBg    = document.getElementById('cvBg');
+const cvDraw  = document.getElementById('cvDraw');
+const cvFx    = document.getElementById('cvFx');
+const cvSym   = document.getElementById('cvSym');
+const cvHand  = document.getElementById('cvHand');
+const ctxBg   = cvBg.getContext('2d');
+const ctxD    = cvDraw.getContext('2d');
+const ctxFx   = cvFx.getContext('2d');
+const ctxSym  = cvSym.getContext('2d');
+const ctxH    = cvHand.getContext('2d');
+const ring    = document.getElementById('ring');
+const videoEl = document.getElementById('videoEl');
+const videoPrev = document.getElementById('videoPrev');
+
+// ─────────────────────────────────────────────────────────────
+// 2. STATE  (all at top — no temporal dead zone issues)
+// ─────────────────────────────────────────────────────────────
+const COLORS = ['#ff6b35','#ff4466','#ff99cc','#ffcc00','#ffe135',
+                '#39ff88','#00d4ff','#4466ff','#cc44ff','#b44fff',
+                '#ffffff','#aaaaaa','#555555','#1a1a2e','#ff0040','#00ffcc'];
+const CHALLENGES = ['🏠 House','🌳 Tree','☀️ Sun','🐱 Cat','🐶 Dog','🚗 Car',
+  '⭐ Star','🍕 Pizza','✈️ Plane','🎂 Cake','🌸 Flower','🐠 Fish',
+  '🎸 Guitar','⛵ Boat','🌙 Moon','🦋 Butterfly'];
+const FINGER_COLORS = ['#ffe135','#ff6b35','#00d4ff','#b44fff','#39ff88'];
+const FINGER_TIPS   = [4, 8, 12, 16, 20];
+const FINGER_NAMES  = ['Thumb','Index','Middle','Ring','Pinky'];
+
+let curColor   = '#ff6b35';
+let brushType  = 'normal';
+let bSize      = 8;
+let opacity    = 1;
+let eraser     = false;
+let fillMode   = false;
+let showSkel   = true;
+let symMode    = false;
+let sym4Mode   = false;
+let particles  = false;
+let bgTheme    = 'grid';
+let rainbowHue = 0;
+
+// Symmetry center — set once by resize(), shared by drawAt() and drawSymLines()
+let CX = 0, CY = 0;
+
+// Per-symmetry-point previous positions: [main, mirrorX, mirrorY, mirrorXY]
+let symPrev = [[null,null],[null,null],[null,null],[null,null]];
+
+let prevX = null, prevY = null;
+let undoStack = [];
+const splineBufs = [[], [], [], []]; // catmull-rom point buffers per symmetry point
+
+// Particles
+let ptList = [];
+
+// Hand tracking
+let camDraw = false;
+let fistT   = null;
+let smoothX = null, smoothY = null;
+let gBuf    = [];
+let lastG   = 'idle';
+let lastTX  = null, lastTY = null;
+const G_FRAMES = 2;   // faster gesture commit — 2 consistent frames (was 3)
+
+// Challenge
+let chalActive = false, chalWord = '', chalTimer = null, chalSec = 60;
+
+// AI
+let aiOpen = false;
+
+const inIframe = (()=>{ try{ return window.self !== window.top; } catch(e){ return true; } })();
+
+// ─────────────────────────────────────────────────────────────
+// 3. RESIZE  — scales canvas, keeps CX/CY in sync
+// ─────────────────────────────────────────────────────────────
+function resize() {
+  const W = carea.clientWidth, H = carea.clientHeight;
+  const oldW = cvDraw.width || W, oldH = cvDraw.height || H;
+
+  // Snapshot current drawing
+  const snap = document.createElement('canvas');
+  snap.width = oldW; snap.height = oldH;
+  snap.getContext('2d').drawImage(cvDraw, 0, 0);
+
+  // Resize all canvases
+  [cvBg, cvDraw, cvFx, cvSym, cvHand].forEach(c => { c.width = W; c.height = H; });
+
+  // Update shared center FIRST
+  CX = W / 2;
+  CY = H / 2;
+
+  // Restore drawing scaled to new size
+  if (oldW > 0 && oldH > 0) ctxD.drawImage(snap, 0, 0, oldW, oldH, 0, 0, W, H);
+
+  drawBG();
+  drawSymLines();
+  endStroke(); // clear stale prev positions
+}
+resize();
+let resizeTimer;
+window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(resize, 150); });
+
+// ─────────────────────────────────────────────────────────────
+// 4. BACKGROUND
+// ─────────────────────────────────────────────────────────────
+function drawBG() {
+  const w = cvBg.width, h = cvBg.height;
+  ctxBg.clearRect(0, 0, w, h);
+  if (bgTheme === 'grid') {
+    ctxBg.strokeStyle = 'rgba(26,26,46,.7)'; ctxBg.lineWidth = 1;
+    for (let x = 0; x < w; x += 36) { ctxBg.beginPath(); ctxBg.moveTo(x,0); ctxBg.lineTo(x,h); ctxBg.stroke(); }
+    for (let y = 0; y < h; y += 36) { ctxBg.beginPath(); ctxBg.moveTo(0,y); ctxBg.lineTo(w,y); ctxBg.stroke(); }
+  } else if (bgTheme === 'dots') {
+    ctxBg.fillStyle = 'rgba(80,80,120,.5)';
+    for (let x = 18; x < w; x += 36) for (let y = 18; y < h; y += 36) {
+      ctxBg.beginPath(); ctxBg.arc(x,y,1.5,0,Math.PI*2); ctxBg.fill();
+    }
+  } else if (bgTheme === 'stars') {
+    ctxBg.fillStyle = 'rgba(255,255,255,.8)';
+    for (let i = 0; i < 200; i++) {
+      const x=Math.random()*w, y=Math.random()*h, r=Math.random()*1.5;
+      ctxBg.beginPath(); ctxBg.arc(x,y,r,0,Math.PI*2); ctxBg.fill();
+    }
+  } else if (bgTheme === 'paper') {
+    ctxBg.fillStyle = '#1a1510'; ctxBg.fillRect(0,0,w,h);
+    ctxBg.strokeStyle = 'rgba(120,100,60,.15)'; ctxBg.lineWidth = 1;
+    for (let y = 28; y < h; y += 28) { ctxBg.beginPath(); ctxBg.moveTo(0,y); ctxBg.lineTo(w,y); ctxBg.stroke(); }
+  } else if (bgTheme === 'neon') {
+    const g = ctxBg.createRadialGradient(w/2,h/2,0,w/2,h/2,Math.max(w,h)/1.5);
+    g.addColorStop(0,'rgba(20,0,40,.8)'); g.addColorStop(1,'rgba(5,5,12,1)');
+    ctxBg.fillStyle = g; ctxBg.fillRect(0,0,w,h);
+    ctxBg.strokeStyle = 'rgba(180,79,255,.08)'; ctxBg.lineWidth = 1;
+    for (let x = 0; x < w; x += 60) { ctxBg.beginPath(); ctxBg.moveTo(x,0); ctxBg.lineTo(x,h); ctxBg.stroke(); }
+    for (let y = 0; y < h; y += 60) { ctxBg.beginPath(); ctxBg.moveTo(0,y); ctxBg.lineTo(w,y); ctxBg.stroke(); }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// 5. SYMMETRY GUIDE LINES  — pixel-accurate, same center as drawAt
+// ─────────────────────────────────────────────────────────────
+function drawSymLines() {
+  const w = cvSym.width, h = cvSym.height;
+  ctxSym.clearRect(0, 0, w, h);
+  if (!symMode && !sym4Mode) return;
+  ctxSym.save();
+  ctxSym.strokeStyle = 'rgba(180,79,255,.5)';
+  ctxSym.lineWidth = 1;
+  ctxSym.setLineDash([8, 6]);
+  ctxSym.shadowBlur = 10; ctxSym.shadowColor = 'rgba(180,79,255,.6)';
+  if (symMode || sym4Mode) {
+    const lx = Math.round(CX) + 0.5;
+    ctxSym.beginPath(); ctxSym.moveTo(lx, 0); ctxSym.lineTo(lx, h); ctxSym.stroke();
+  }
+  if (sym4Mode) {
+    const ly = Math.round(CY) + 0.5;
+    ctxSym.beginPath(); ctxSym.moveTo(0, ly); ctxSym.lineTo(w, ly); ctxSym.stroke();
+  }
+  ctxSym.restore();
+}
+
+// ─────────────────────────────────────────────────────────────
+// 6. COLOR PALETTE
+// ─────────────────────────────────────────────────────────────
+const palette = document.getElementById('palette');
+COLORS.forEach(c => {
+  const btn = document.createElement('button');
+  btn.className = 'cb' + (c === curColor ? ' on' : '');
+  btn.style.cssText = `background:${c};${c==='#1a1a2e'?'border-color:#333!important':''}`;
+  btn.addEventListener('click', () => {
+    curColor = c; eraser = false; fillMode = false;
+    eraserBtn.classList.remove('on'); eraserBtn.textContent = '✏️ Eraser';
+    fillBtn.classList.remove('on'); fillBtn.textContent = '🪣 Fill';
+    palette.querySelectorAll('.cb').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+  });
+  palette.appendChild(btn);
+});
+document.getElementById('customColor').addEventListener('input', e => {
+  curColor = e.target.value; eraser = false; fillMode = false;
+  eraserBtn.classList.remove('on'); eraserBtn.textContent = '✏️ Eraser';
+  fillBtn.classList.remove('on'); fillBtn.textContent = '🪣 Fill';
+  palette.querySelectorAll('.cb').forEach(b => b.classList.remove('on'));
+});
+
+// ─────────────────────────────────────────────────────────────
+// 7. BRUSH TABS / SLIDERS / BG TABS
+// ─────────────────────────────────────────────────────────────
+document.getElementById('brushTabs').addEventListener('click', e => {
+  const t = e.target.closest('.btab'); if (!t) return;
+  brushType = t.dataset.b;
+  document.querySelectorAll('.btab').forEach(b => b.classList.remove('on'));
+  t.classList.add('on');
+  toast('Brush: ' + t.textContent.trim());
+});
+document.getElementById('bSize').addEventListener('input', e => {
+  bSize = +e.target.value; document.getElementById('bVal').textContent = bSize + 'px';
+});
+document.getElementById('oSlider').addEventListener('input', e => {
+  opacity = e.target.value / 100; document.getElementById('oVal').textContent = e.target.value + '%';
+});
+document.getElementById('bgTabs').addEventListener('click', e => {
+  const t = e.target.closest('.bgtab'); if (!t) return;
+  bgTheme = t.dataset.bg;
+  document.querySelectorAll('.bgtab').forEach(b => b.classList.remove('on'));
+  t.classList.add('on'); drawBG();
+});
+
+// ─────────────────────────────────────────────────────────────
+// 8. FX BUTTONS
+// ─────────────────────────────────────────────────────────────
+const symBtn  = document.getElementById('symBtn');
+const sym4Btn = document.getElementById('sym4Btn');
+const ptBtn   = document.getElementById('ptBtn');
+
+symBtn.addEventListener('click', () => {
+  symMode = !symMode;
+  if (symMode) { sym4Mode = false; sym4Btn.textContent = '✡️ 4-Way: Off'; sym4Btn.classList.remove('on'); }
+  symBtn.textContent = '🔁 Symmetry: ' + (symMode ? 'ON' : 'Off');
+  symBtn.classList.toggle('on', symMode);
+  drawSymLines();
+  toast(symMode ? 'Mirror ON' : 'Mirror OFF');
+});
+sym4Btn.addEventListener('click', () => {
+  sym4Mode = !sym4Mode;
+  if (sym4Mode) { symMode = false; symBtn.textContent = '🔁 Symmetry: Off'; symBtn.classList.remove('on'); }
+  sym4Btn.textContent = '✡️ 4-Way: ' + (sym4Mode ? 'ON' : 'Off');
+  sym4Btn.classList.toggle('on', sym4Mode);
+  drawSymLines();
+  toast(sym4Mode ? '4-Way ON' : '4-Way OFF');
+});
+ptBtn.addEventListener('click', () => {
+  particles = !particles;
+  ptBtn.textContent = '✨ Particles: ' + (particles ? 'ON' : 'Off');
+  ptBtn.classList.toggle('on', particles);
+  toast(particles ? 'Particles ON' : 'Particles OFF');
+});
+
+// ─────────────────────────────────────────────────────────────
+// 9. TOOL BUTTONS
+// ─────────────────────────────────────────────────────────────
+const eraserBtn = document.getElementById('eraserBtn');
+const fillBtn   = document.getElementById('fillBtn');
+
+eraserBtn.addEventListener('click', () => {
+  eraser = !eraser; fillMode = false;
+  fillBtn.classList.remove('on'); fillBtn.textContent = '🪣 Fill';
+  eraserBtn.textContent = eraser ? '🎨 Draw' : '✏️ Eraser';
+  eraserBtn.classList.toggle('on', eraser);
+  toast(eraser ? 'Eraser ON' : 'Draw mode');
+});
+fillBtn.addEventListener('click', () => {
+  fillMode = !fillMode; eraser = false;
+  eraserBtn.classList.remove('on'); eraserBtn.textContent = '✏️ Eraser';
+  fillBtn.textContent = fillMode ? '✏️ Draw' : '🪣 Fill';
+  fillBtn.classList.toggle('on', fillMode);
+  toast(fillMode ? 'Fill mode — click area' : 'Draw mode');
+});
+document.getElementById('skelBtn').addEventListener('click', () => {
+  showSkel = !showSkel;
+  document.getElementById('skelBtn').textContent = showSkel ? '👋 Skeleton: ON' : '👋 Skeleton: Off';
+  if (!showSkel) ctxH.clearRect(0, 0, cvHand.width, cvHand.height);
+});
+document.getElementById('clearBtn').addEventListener('click', () => { pushUndo(); clearAll(); });
+document.getElementById('undoBtn').addEventListener('click', undo);
+document.getElementById('saveBtn').addEventListener('click', () => {
+  const tmp = document.createElement('canvas');
+  tmp.width = cvDraw.width; tmp.height = cvDraw.height;
+  const tc = tmp.getContext('2d');
+  tc.drawImage(cvBg, 0, 0); tc.drawImage(cvDraw, 0, 0);
+  const a = document.createElement('a');
+  a.download = 'aircanvas-' + Date.now() + '.png';
+  a.href = tmp.toDataURL(); a.click(); toast('Saved!');
+});
+
+document.addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if ((e.ctrlKey || e.metaKey) && k === 'z') { undo(); return; }
+  if (k === 'z') undo();
+  if (k === 'c' && !e.ctrlKey && !e.metaKey) { pushUndo(); clearAll(); }
+  if (k === 'e') eraserBtn.click();
+  if (k === 'f') fillBtn.click();
+});
+
+// ─────────────────────────────────────────────────────────────
+// 10. UNDO / CLEAR
+// ─────────────────────────────────────────────────────────────
+function pushUndo() {
+  if (undoStack.length > 40) undoStack.shift();
+  undoStack.push(ctxD.getImageData(0, 0, cvDraw.width, cvDraw.height));
+}
+function undo() {
+  if (!undoStack.length) return;
+  ctxD.putImageData(undoStack.pop(), 0, 0); toast('Undo');
+}
+function clearAll() { ctxD.clearRect(0, 0, cvDraw.width, cvDraw.height); toast('Canvas cleared'); }
+
+// ─────────────────────────────────────────────────────────────
+// 11. PARTICLES
+// ─────────────────────────────────────────────────────────────
+function spawnPt(x, y, col) {
+  for (let i = 0; i < 5; i++)
+    ptList.push({ x, y, vx:(Math.random()-.5)*3, vy:(Math.random()-.5)*3,
+      r:Math.random()*3+1, life:1, col, decay:Math.random()*.05+.02 });
+}
+(function animPt() {
+  ctxFx.clearRect(0, 0, cvFx.width, cvFx.height);
+  ptList = ptList.filter(p => {
+    p.x += p.vx; p.y += p.vy; p.life -= p.decay; p.r *= .97;
+    if (p.life <= 0) return false;
+    ctxFx.globalAlpha = p.life * .7; ctxFx.fillStyle = p.col;
+    ctxFx.beginPath(); ctxFx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctxFx.fill();
+    return true;
+  });
+  ctxFx.globalAlpha = 1;
+  requestAnimationFrame(animPt);
+})();
+
+// ─────────────────────────────────────────────────────────────
+// 12. FLOOD FILL
+// ─────────────────────────────────────────────────────────────
+function hexRgb(hex) {
+  return { r:parseInt(hex.slice(1,3),16), g:parseInt(hex.slice(3,5),16), b:parseInt(hex.slice(5,7),16) };
+}
+function floodFill(sx, sy, col) {
+  const w = cvDraw.width, h = cvDraw.height;
+  const img = ctxD.getImageData(0,0,w,h), d = img.data;
+  const idx = (x,y) => (y*w+x)*4;
+  const x0 = Math.floor(sx), y0 = Math.floor(sy);
+  const i0 = idx(x0,y0);
+  const tr=d[i0], tg=d[i0+1], tb=d[i0+2], ta=d[i0+3];
+  const fc = hexRgb(col);
+  if (tr===fc.r && tg===fc.g && tb===fc.b && ta===255) return;
+  const match = i => Math.abs(d[i]-tr)<30 && Math.abs(d[i+1]-tg)<30 && Math.abs(d[i+2]-tb)<30 && Math.abs(d[i+3]-ta)<30;
+  const stack = [[x0,y0]], vis = new Uint8Array(w*h);
+  while (stack.length) {
+    const [x,y] = stack.pop();
+    if (x<0||x>=w||y<0||y>=h) continue;
+    const i = idx(x,y);
+    if (vis[y*w+x] || !match(i)) continue;
+    vis[y*w+x] = 1;
+    d[i]=fc.r; d[i+1]=fc.g; d[i+2]=fc.b; d[i+3]=255;
+    stack.push([x+1,y],[x-1,y],[x,y+1],[x,y-1]);
+  }
+  ctxD.putImageData(img, 0, 0);
+}
+
+// ─────────────────────────────────────────────────────────────
+// 13. ULTRA-PRO DRAW ENGINE
+//     • Catmull-Rom spline curves (silky smooth, not jagged lines)
+//     • Gap interpolation (fills broken lines when hand moves fast)
+//     • Adaptive EMA (less smoothing when fast, more when slow)
+//     • Stroke point buffer for bezier rendering
+// ─────────────────────────────────────────────────────────────
+function endStroke() {
+  prevX = null; prevY = null;
+  symPrev = [[null,null],[null,null],[null,null],[null,null]];
+  // Clear spline buffers
+  for (let i = 0; i < splineBufs.length; i++) splineBufs[i] = [];
+}
+
+// One spline buffer per symmetry point
+const MAX_SPLINE_PTS = 6; // rolling window for catmull-rom
+
+// Catmull-Rom segment between p1→p2, using p0 and p3 as tension guides
+function catmullRomSegment(ctx, p0, p1, p2, p3, steps) {
+  for (let i = 1; i <= steps; i++) {
+    const t  = i / steps;
+    const t2 = t*t, t3 = t2*t;
+    const x = 0.5*((2*p1[0]) + (-p0[0]+p2[0])*t +
+              (2*p0[0]-5*p1[0]+4*p2[0]-p3[0])*t2 +
+              (-p0[0]+3*p1[0]-3*p2[0]+p3[0])*t3);
+    const y = 0.5*((2*p1[1]) + (-p0[1]+p2[1])*t +
+              (2*p0[1]-5*p1[1]+4*p2[1]-p3[1])*t2 +
+              (-p0[1]+3*p1[1]-3*p2[1]+p3[1])*t3);
+    ctx.lineTo(x, y);
+  }
+}
+
+function drawAt(x, y) {
+  if (particles) spawnPt(x, y, curColor);
+
+  const mx = 2*CX - x;
+  const my = 2*CY - y;
+
+  const pts = [[x, y, 0]];
+  if (symMode)  pts.push([mx, y,  1]);
+  if (sym4Mode) pts.push([mx, y,  1], [x, my, 2], [mx, my, 3]);
+
+  pts.forEach(([px, py, si]) => {
+    const [ppx, ppy] = symPrev[si];
+
+    if (ppx !== null && ppy !== null) {
+      const dist = Math.hypot(px - ppx, py - ppy);
+
+      // Gap interpolation: if hand moved > 10px between frames, fill it in
+      if (dist > 10) {
+        const steps = Math.ceil(dist / 6);
+        for (let i = 1; i < steps; i++) {
+          const ix = ppx + (px - ppx) * i / steps;
+          const iy = ppy + (py - ppy) * i / steps;
+          addToSplineBuf(si, ix, iy);
+        }
+      }
+    }
+
+    addToSplineBuf(si, px, py);
+    symPrev[si] = [px, py];
+  });
+
+  prevX = x; prevY = y;
+}
+
+function addToSplineBuf(si, x, y) {
+  const buf = splineBufs[si];
+  buf.push([x, y]);
+  if (buf.length > MAX_SPLINE_PTS) buf.shift();
+
+  // Need at least 4 points for catmull-rom
+  if (buf.length >= 4) {
+    const n = buf.length;
+    const p0 = buf[n-4], p1 = buf[n-3], p2 = buf[n-2], p3 = buf[n-1];
+    strokeSpline(p0, p1, p2, p3);
+  } else if (buf.length === 1) {
+    // First dot
+    strokeDot(x, y);
+  }
+}
+
+function strokeDot(x, y) {
+  if (eraser) {
+    ctxD.globalCompositeOperation = 'destination-out';
+    ctxD.globalAlpha = .4;
+    ctxD.beginPath(); ctxD.arc(x, y, bSize, 0, Math.PI*2);
+    ctxD.fillStyle = 'black'; ctxD.fill();
+    ctxD.globalAlpha = 1; ctxD.globalCompositeOperation = 'source-over';
+    return;
+  }
+  ctxD.globalCompositeOperation = 'source-over';
+  applyDotStyle(x, y);
+}
+
+function strokeSpline(p0, p1, p2, p3) {
+  if (eraser) {
+    ctxD.globalCompositeOperation = 'destination-out';
+    ctxD.globalAlpha = .5;
+    ctxD.lineWidth = bSize * 2; ctxD.lineCap = 'round'; ctxD.lineJoin = 'round';
+    ctxD.strokeStyle = 'black';
+    ctxD.beginPath(); ctxD.moveTo(p1[0], p1[1]);
+    catmullRomSegment(ctxD, p0, p1, p2, p3, 8);
+    ctxD.stroke();
+    ctxD.globalAlpha = 1; ctxD.globalCompositeOperation = 'source-over';
+    return;
+  }
+  ctxD.globalCompositeOperation = 'source-over';
+  applySplineStyle(p0, p1, p2, p3);
+}
+
+function applyDotStyle(x, y) {
+  if (brushType === 'normal') {
+    ctxD.globalAlpha = opacity;
+    ctxD.beginPath(); ctxD.arc(x, y, bSize/2, 0, Math.PI*2);
+    ctxD.fillStyle = curColor; ctxD.fill();
+    ctxD.globalAlpha = 1;
+  } else if (brushType === 'neon') {
+    ctxD.shadowBlur = bSize*2.5; ctxD.shadowColor = curColor;
+    ctxD.globalAlpha = opacity*.9;
+    ctxD.beginPath(); ctxD.arc(x, y, bSize/3, 0, Math.PI*2);
+    ctxD.fillStyle = curColor; ctxD.fill();
+    ctxD.shadowBlur = 0; ctxD.globalAlpha = 1;
+  } else if (brushType === 'spray') {
+    applySpray(x, y);
+  } else {
+    ctxD.globalAlpha = opacity;
+    ctxD.beginPath(); ctxD.arc(x, y, bSize/2, 0, Math.PI*2);
+    ctxD.fillStyle = curColor; ctxD.fill();
+    ctxD.globalAlpha = 1;
+  }
+}
+
+function applySplineStyle(p0, p1, p2, p3) {
+  const steps = 10; // smooth subdivisions per segment
+
+  if (brushType === 'normal') {
+    ctxD.globalAlpha = opacity;
+    ctxD.strokeStyle = curColor; ctxD.lineWidth = bSize;
+    ctxD.lineCap = 'round'; ctxD.lineJoin = 'round';
+    ctxD.beginPath(); ctxD.moveTo(p1[0], p1[1]);
+    catmullRomSegment(ctxD, p0, p1, p2, p3, steps);
+    ctxD.stroke(); ctxD.globalAlpha = 1;
+
+  } else if (brushType === 'neon') {
+    ctxD.shadowBlur = bSize*2.5; ctxD.shadowColor = curColor;
+    ctxD.globalAlpha = opacity*.9;
+    ctxD.strokeStyle = curColor; ctxD.lineWidth = bSize*.6;
+    ctxD.lineCap = 'round';
+    ctxD.beginPath(); ctxD.moveTo(p1[0], p1[1]);
+    catmullRomSegment(ctxD, p0, p1, p2, p3, steps);
+    ctxD.stroke(); ctxD.shadowBlur = 0; ctxD.globalAlpha = 1;
+
+  } else if (brushType === 'glow') {
+    for (let i = 3; i > 0; i--) {
+      ctxD.globalAlpha = (opacity*.5)/i*.6;
+      ctxD.strokeStyle = curColor; ctxD.lineWidth = bSize*i*1.2; ctxD.lineCap = 'round';
+      ctxD.beginPath(); ctxD.moveTo(p1[0], p1[1]);
+      catmullRomSegment(ctxD, p0, p1, p2, p3, steps);
+      ctxD.stroke();
+    }
+    ctxD.globalAlpha = opacity; ctxD.strokeStyle = '#fff'; ctxD.lineWidth = bSize*.3;
+    ctxD.beginPath(); ctxD.moveTo(p1[0], p1[1]);
+    catmullRomSegment(ctxD, p0, p1, p2, p3, steps);
+    ctxD.stroke(); ctxD.globalAlpha = 1;
+
+  } else if (brushType === 'rainbow') {
+    rainbowHue = (rainbowHue + 3) % 360;
+    const rc = `hsl(${rainbowHue},100%,60%)`;
+    ctxD.globalAlpha = opacity; ctxD.strokeStyle = rc;
+    ctxD.lineWidth = bSize; ctxD.lineCap = 'round';
+    ctxD.beginPath(); ctxD.moveTo(p1[0], p1[1]);
+    catmullRomSegment(ctxD, p0, p1, p2, p3, steps);
+    ctxD.stroke(); ctxD.globalAlpha = 1;
+
+  } else if (brushType === 'spray') {
+    applySpray(p2[0], p2[1]);
+
+  } else if (brushType === 'calli') {
+    const angle = Math.atan2(p2[1]-p1[1], p2[0]-p1[0]);
+    const w2 = bSize*2, h2 = bSize*.4;
+    ctxD.globalAlpha = opacity;
+    ctxD.strokeStyle = curColor; ctxD.lineWidth = h2; ctxD.lineCap = 'square';
+    ctxD.save();
+    ctxD.translate(p1[0], p1[1]); ctxD.rotate(angle + Math.PI/4);
+    ctxD.fillStyle = curColor; ctxD.fillRect(-w2/2,-h2/2,w2,h2);
+    ctxD.restore();
+    ctxD.beginPath(); ctxD.moveTo(p1[0], p1[1]);
+    catmullRomSegment(ctxD, p0, p1, p2, p3, steps);
+    ctxD.stroke(); ctxD.globalAlpha = 1;
+  }
+}
+
+function applySpray(x, y) {
+  ctxD.globalAlpha = opacity * .6;
+  for (let i = 0; i < Math.floor(bSize*1.5); i++) {
+    const r = bSize*Math.random(), a = Math.random()*Math.PI*2;
+    ctxD.fillStyle = curColor;
+    ctxD.beginPath(); ctxD.arc(x+r*Math.cos(a), y+r*Math.sin(a), Math.random()*1.2+.3, 0, Math.PI*2); ctxD.fill();
+  }
+  ctxD.globalAlpha = 1;
+}
+
+// ─────────────────────────────────────────────────────────────
+// 14. CURSOR RING
+// ─────────────────────────────────────────────────────────────
+function movRing(x, y, down) {
+  const sz = Math.max(12, bSize + 8);
+  ring.style.left = x + 'px'; ring.style.top = y + 'px';
+  ring.style.width = sz + 'px'; ring.style.height = sz + 'px';
+  ring.classList.add('v'); ring.classList.toggle('d', !!down);
+}
+
+// ─────────────────────────────────────────────────────────────
+// 15. STATUS / TOAST
+// ─────────────────────────────────────────────────────────────
+function setStatus(a, b, dr, label) {
+  document.getElementById('d1').className = 'dot' + (a?' g':'');
+  document.getElementById('s1').textContent = a ? (label||'Active') : 'Waiting';
+  document.getElementById('d2').className = 'dot' + (b?' b':'');
+  document.getElementById('s2').textContent = b ? 'Input active' : 'No input';
+  document.getElementById('d3').className = 'dot' + (dr?' o':'');
+  document.getElementById('s3').textContent = dr ? 'Drawing…' : 'Pen up';
+}
+let toastTmr;
+function toast(m) {
+  const el = document.getElementById('toast');
+  el.textContent = m; el.classList.add('s');
+  clearTimeout(toastTmr); toastTmr = setTimeout(() => el.classList.remove('s'), 1800);
+}
+
+// ─────────────────────────────────────────────────────────────
+// HOME BUTTON — go back to mode selection
+// ─────────────────────────────────────────────────────────────
+let activeCamStream = null; // track camera stream to stop it on home
+
+function goHome() {
+  // Stop camera if running
+  if (activeCamStream) {
+    activeCamStream.getTracks().forEach(t => t.stop());
+    activeCamStream = null;
+  }
+  videoEl.srcObject = null;
+  videoPrev.srcObject = null;
+  videoPrev.style.display = 'none';
+
+  // Reset hand tracking state
+  camDraw=false; fistT=null; smoothX=null; smoothY=null; gBuf=[]; lastG='idle';
+  ctxH.clearRect(0,0,cvHand.width,cvHand.height);
+  ring.classList.remove('v','d');
+  document.getElementById('fingerHUD').style.display = 'none';
+  document.getElementById('skelBtn').style.display = 'none';
+  document.getElementById('mouseGuide').style.display = 'block';
+  document.getElementById('camGuide').style.display = 'none';
+
+  // Reset badge & status
+  document.getElementById('badge').className = 'badge';
+  document.getElementById('badge').textContent = '—';
+  setStatus(false,false,false,'');
+
+  // Hide home button, show start screen
+  document.getElementById('homeBtn').style.display = 'none';
+  document.getElementById('ovStart').style.display = 'flex';
+  document.getElementById('ovRating').style.display = 'none';
+  document.getElementById('challengePanel').style.display = 'none';
+  if (chalActive) { clearInterval(chalTimer); chalActive=false; document.getElementById('chalBtn').textContent='🎯 Challenge'; }
+
+  endStroke();
+  toast('Back to Home 🏠');
+}
+
+document.getElementById('homeBtn').addEventListener('click', goHome);
+
+// ─────────────────────────────────────────────────────────────
+// 16. MOUSE / TOUCH MODE
+// ─────────────────────────────────────────────────────────────
+function activateMouse() {
+  let dn = false;
+  function getXY(e) {
+    const r = cvDraw.getBoundingClientRect();
+    if (e.touches) return { x: e.touches[0].clientX-r.left, y: e.touches[0].clientY-r.top };
+    return { x: e.clientX-r.left, y: e.clientY-r.top };
+  }
+  cvDraw.addEventListener('mousedown', e => {
+    const p = getXY(e);
+    if (fillMode) { pushUndo(); floodFill(p.x, p.y, curColor); return; }
+    dn = true; endStroke(); pushUndo();
+    drawAt(p.x, p.y); movRing(p.x, p.y, true);
+    setStatus(true, true, true, 'Mouse');
+  });
+  cvDraw.addEventListener('mousemove', e => {
+    const p = getXY(e); movRing(p.x, p.y, dn);
+    if (dn) drawAt(p.x, p.y);
+  });
+  cvDraw.addEventListener('mouseup',    () => { dn=false; endStroke(); setStatus(true,true,false,'Mouse'); });
+  cvDraw.addEventListener('mouseleave', () => { ring.classList.remove('v'); if(dn){dn=false;endStroke();} });
+  cvDraw.addEventListener('mouseenter', () => ring.classList.add('v'));
+  cvDraw.addEventListener('touchstart', e => {
+    e.preventDefault();
+    const p = getXY(e);
+    if (fillMode) { pushUndo(); floodFill(p.x, p.y, curColor); return; }
+    dn=true; endStroke(); pushUndo(); drawAt(p.x,p.y); movRing(p.x,p.y,true);
+    setStatus(true,true,true,'Touch');
+  }, { passive:false });
+  cvDraw.addEventListener('touchmove', e => {
+    e.preventDefault(); const p=getXY(e); drawAt(p.x,p.y); movRing(p.x,p.y,true);
+  }, { passive:false });
+  cvDraw.addEventListener('touchend', () => { dn=false; endStroke(); setStatus(true,true,false,'Touch'); });
+
+  document.getElementById('badge').className = 'badge m';
+  document.getElementById('badge').textContent = 'Mouse mode';
+  document.getElementById('homeBtn').style.display = 'flex';
+  setStatus(true, false, false, 'Mouse');
+  toast('Mouse / Touch ready 🖱️');
+}
+
+// ─────────────────────────────────────────────────────────────
+// 17. HAND TRACKING
+// ─────────────────────────────────────────────────────────────
+function dst(a,b) { return Math.hypot(a.x-b.x, a.y-b.y); }
+function fingerUp(lm,tip,pip) { return lm[tip].y < lm[pip].y; }
+
+function getGesture(lm) {
+  const i=fingerUp(lm,8,6), m=fingerUp(lm,12,10), r=fingerUp(lm,16,14), p=fingerUp(lm,20,18);
+  if (!i&&!m&&!r&&!p) return 'fist';
+  if (i&&m&&!r&&!p)   return 'peace';
+  if (dst(lm[8],lm[4]) < 0.07) return 'pinch';
+  if (i&&!m)           return 'draw';
+  return 'idle';
+}
+
+// Debounced gesture — requires G_FRAMES consistent frames to commit
+function stableGesture(g) {
+  gBuf.push(g);
+  if (gBuf.length > G_FRAMES) gBuf.shift();
+  if (gBuf.length === G_FRAMES && gBuf.every(x => x === gBuf[0])) lastG = gBuf[0];
+  return lastG;
+}
+
+// Adaptive EMA — less smoothing when fast (keeps up), more when slow (precision)
+function smooth(x, y) {
+  if (smoothX === null) { smoothX=x; smoothY=y; return [x, y]; }
+  const speed = Math.hypot(x - smoothX, y - smoothY);
+  // alpha: 0.95 at high speed (barely smooth = very responsive), 0.55 at rest (more smooth)
+  const alpha = Math.min(0.95, 0.55 + speed * 0.018);
+  smoothX = smoothX*(1-alpha) + x*alpha;
+  smoothY = smoothY*(1-alpha) + y*alpha;
+  return [smoothX, smoothY];
+}
+
+// Hand skeleton drawing
+const CONN = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],
+              [9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
+const FINGER_SEGS = [[0,1,2,3,4],[0,5,6,7,8],[5,9,10,11,12],[9,13,14,15,16],[13,17,18,19,20]];
+
+function drawSkel(lm, W, H, states, g) {
+  ctxH.clearRect(0, 0, W, H);
+  // Finger bones
+  FINGER_SEGS.forEach((seg, fi) => {
+    const col = states[fi] ? FINGER_COLORS[fi] : 'rgba(100,100,150,.4)';
+    ctxH.strokeStyle = col; ctxH.lineWidth = states[fi] ? 2.5 : 1.5;
+    ctxH.shadowBlur = states[fi] ? 8 : 0; ctxH.shadowColor = col;
+    for (let i = 0; i < seg.length-1; i++) {
+      const a=seg[i],b=seg[i+1];
+      ctxH.beginPath(); ctxH.moveTo(lm[a].x*W, lm[a].y*H); ctxH.lineTo(lm[b].x*W, lm[b].y*H); ctxH.stroke();
+    }
+  });
+  ctxH.shadowBlur = 0;
+  // Palm
+  ctxH.strokeStyle = 'rgba(100,100,180,.5)'; ctxH.lineWidth = 1.5;
+  [[0,5],[5,9],[9,13],[13,17],[0,17]].forEach(([a,b]) => {
+    ctxH.beginPath(); ctxH.moveTo(lm[a].x*W,lm[a].y*H); ctxH.lineTo(lm[b].x*W,lm[b].y*H); ctxH.stroke();
+  });
+  // Dots
+  lm.forEach((p,i) => {
+    const fi = FINGER_TIPS.indexOf(i);
+    const col = fi>=0 ? FINGER_COLORS[fi] : 'rgba(180,180,220,.6)';
+    const r = fi>=0 ? 7 : 3;
+    ctxH.beginPath(); ctxH.arc(p.x*W, p.y*H, r, 0, Math.PI*2);
+    ctxH.fillStyle = col;
+    if (fi>=0) { ctxH.shadowBlur=12; ctxH.shadowColor=col; }
+    ctxH.fill(); ctxH.shadowBlur=0;
+  });
+  // Fingertip labels
+  FINGER_TIPS.forEach((tip,fi) => {
+    if (!states[fi]) return;
+    const p = lm[tip];
+    ctxH.font = 'bold 10px monospace'; ctxH.fillStyle = FINGER_COLORS[fi];
+    ctxH.shadowBlur=5; ctxH.shadowColor=FINGER_COLORS[fi]; ctxH.textAlign='center';
+    ctxH.fillText(FINGER_NAMES[fi], p.x*W, p.y*H-12); ctxH.shadowBlur=0;
+  });
+  // Gesture label near wrist
+  const gi = {draw:{l:'✏️ DRAW',c:'#ff6b35'},peace:{l:'✌️ PEN UP',c:'#00d4ff'},
+    fist:{l:'✊ CLEAR',c:'#ff4466'},pinch:{l:'🤏 RESIZE',c:'#ffe135'},idle:{l:'🖐 IDLE',c:'#666688'}};
+  const ginfo = gi[g] || gi.idle;
+  ctxH.font = 'bold 12px sans-serif'; ctxH.fillStyle = ginfo.c;
+  ctxH.shadowBlur=8; ctxH.shadowColor=ginfo.c; ctxH.textAlign='center';
+  ctxH.fillText(ginfo.l, lm[0].x*W, lm[0].y*H+22); ctxH.shadowBlur=0;
+}
+
+// Finger HUD updater
+const GINFO = {
+  draw:  { emoji:'☝️', name:'DRAW',   desc:'Index finger up — drawing', col:'#ff6b35' },
+  peace: { emoji:'✌️', name:'PEN UP', desc:'Two fingers — stroke ended',  col:'#00d4ff' },
+  fist:  { emoji:'✊', name:'FIST',   desc:'Hold 1.2s to clear canvas',   col:'#ff4466' },
+  pinch: { emoji:'🤏', name:'PINCH',  desc:'Pinch to resize brush',       col:'#ffe135' },
+  idle:  { emoji:'🖐', name:'IDLE',   desc:'Waiting for gesture…',        col:'#666688' },
+};
+function updateHUD(lm, states, g, conf) {
+  document.getElementById('fingerHUD').style.display = 'block';
+  states.forEach((up, i) => {
+    const el = document.getElementById('fv'+i);
+    el.className = 'fv' + (up?' up':'') + (i===1&&g==='draw'?' drawing':'');
+  });
+  const gi = GINFO[g] || GINFO.idle;
+  const gn = document.getElementById('gname');
+  gn.textContent = gi.emoji+' '+gi.name; gn.style.color = gi.col;
+  document.getElementById('gdesc').textContent = gi.desc;
+  const pct = Math.round(conf*100);
+  const cf = document.getElementById('confFill');
+  cf.style.width = pct+'%';
+  cf.style.background = pct>80?'var(--green)':pct>50?'var(--yellow)':'#ff4466';
+  document.getElementById('confPct').textContent = pct+'%';
+  const tip = lm[8];
+  document.getElementById('tipX').textContent = (tip.x*100).toFixed(1)+'%';
+  document.getElementById('tipY').textContent = (tip.y*100).toFixed(1)+'%';
+  document.getElementById('tipZ').textContent = (tip.z*100).toFixed(1);
+  if (lastTX!==null) {
+    const spd = Math.min(100, Math.hypot(tip.x-lastTX, tip.y-lastTY)*4000);
+    document.getElementById('spdFill').style.width = spd+'%';
+  }
+  lastTX=tip.x; lastTY=tip.y;
+}
+function resetHUD() {
+  document.getElementById('gname').textContent = '—';
+  document.getElementById('gdesc').textContent = 'Hand not visible';
+  document.getElementById('confFill').style.width = '0%';
+  document.getElementById('confPct').textContent = '0%';
+  document.getElementById('spdFill').style.width = '0%';
+  ['fv0','fv1','fv2','fv3','fv4'].forEach(id => { document.getElementById(id).className='fv'; });
+}
+
+function activateCamera() {
+  if (inIframe) { document.getElementById('ovStart').style.display='none'; document.getElementById('ovIframe').style.display='flex'; return; }
+  doCamera();
+}
+
+function doCamera() {
+  const ovLoad = document.getElementById('ovLoad');
+  const loadTxt = document.getElementById('loadTxt');
+  ovLoad.style.display = 'flex'; loadTxt.textContent = 'Requesting camera…';
+
+  navigator.mediaDevices.getUserMedia({
+    video: { width: 1280, height: 720, facingMode: 'user', frameRate: { ideal: 60, min: 30 } }
+  })
+    .then(stream => {
+      activeCamStream = stream; // save so goHome() can stop it
+      videoEl.srcObject = stream; videoPrev.srcObject = stream; videoPrev.style.display = 'block';
+      loadTxt.textContent = 'Loading AI hand model…';
+
+      const hands = new Hands({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
+      hands.setOptions({
+        maxNumHands: 1,
+        modelComplexity: 1,          // full model — best accuracy
+        minDetectionConfidence: 0.5, // lower = detects hand faster (was .7)
+        minTrackingConfidence: 0.4,  // lower = tracks without losing it (was .6)
+      });
+
+      let firstFrame = false;
+
+      hands.onResults(res => {
+        if (!firstFrame) {
+          firstFrame = true;
+          ovLoad.style.display = 'none';
+          document.getElementById('badge').className = 'badge c';
+          document.getElementById('badge').textContent = 'Hand tracking';
+          document.getElementById('homeBtn').style.display = 'flex';
+          document.getElementById('skelBtn').style.display = 'flex';
+          document.getElementById('mouseGuide').style.display = 'none';
+          document.getElementById('camGuide').style.display = 'block';
+          toast('Hand tracking active ✋');
+        }
+
+        const W = cvDraw.width, H = cvDraw.height;
+
+        if (!res.multiHandLandmarks || !res.multiHandLandmarks.length) {
+          setStatus(true, false, false, 'Hand tracking');
+          ctxH.clearRect(0,0,W,H); ring.classList.remove('v','d');
+          camDraw=false; endStroke();
+          smoothX=null; smoothY=null; gBuf=[]; lastG='idle';
+          resetHUD(); return;
+        }
+
+        const lm = res.multiHandLandmarks[0].map(p => ({ x:1-p.x, y:p.y, z:p.z }));
+        const conf = res.multiHandedness[0]?.score || 0.9;
+
+        const thumbUp  = lm[4].x > lm[3].x;
+        const indexUp  = fingerUp(lm,8,6);
+        const middleUp = fingerUp(lm,12,10);
+        const ringUp   = fingerUp(lm,16,14);
+        const pinkyUp  = fingerUp(lm,20,18);
+        const states   = [thumbUp, indexUp, middleUp, ringUp, pinkyUp];
+
+        const rawG = getGesture(lm);
+        const g    = stableGesture(rawG);
+
+        // Smooth tip position
+        const [sx, sy] = smooth(lm[8].x*W, lm[8].y*H);
+
+        if (showSkel) drawSkel(lm, W, H, states, g);
+        else ctxH.clearRect(0, 0, W, H);
+
+        updateHUD(lm, states, g, conf);
+        movRing(sx, sy, g==='draw');
+
+        if (g === 'pinch') {
+          const d = dst(lm[8], lm[4]);
+          bSize = Math.max(2, Math.min(80, Math.round(d*600)));
+          document.getElementById('bSize').value = bSize;
+          document.getElementById('bVal').textContent = bSize+'px';
+          camDraw=false; endStroke(); setStatus(true,true,false,'Hand tracking'); return;
+        }
+        if (g === 'fist') {
+          if (!fistT) fistT = Date.now();
+          if (Date.now()-fistT > 1200) { pushUndo(); clearAll(); fistT=null; }
+          camDraw=false; endStroke(); setStatus(true,true,false,'Hand tracking'); return;
+        }
+        fistT = null;
+        if (g === 'peace' || g === 'idle') {
+          camDraw=false; endStroke(); setStatus(true,true,false,'Hand tracking'); return;
+        }
+        if (g === 'draw') {
+          if (!camDraw) { pushUndo(); endStroke(); camDraw=true; }
+          drawAt(sx, sy);
+          setStatus(true, true, true, 'Hand tracking');
+        }
+      });
+
+      const cam = new Camera(videoEl, { onFrame: async () => await hands.send({ image: videoEl }), width:1280, height:720, fps: 60 });
+      cam.start().catch(err => showCamErr(err.message || err.name));
+    })
+    .catch(err => showCamErr(err.message || err.name || 'Permission denied'));
+}
+
+function showCamErr(msg) {
+  document.getElementById('ovLoad').style.display = 'none';
+  document.getElementById('ovIframe').style.display = 'none';
+  document.getElementById('ovStart').style.display = 'flex';
+  document.getElementById('errNote').innerHTML = `<span style="color:#ff4466">⚠️ ${msg}</span><br>Use Mouse mode or open file directly in Chrome.`;
+}
+
+// ─────────────────────────────────────────────────────────────
+// 18. AI GUESS
+// ─────────────────────────────────────────────────────────────
+document.getElementById('aiBtn').addEventListener('click', async () => {
+  if (aiOpen) return; aiOpen = true;
+  const panel = document.getElementById('aiPanel');
+  const box   = document.getElementById('aiBox');
+  const cont  = document.getElementById('aiContent');
+  panel.style.display = 'block'; box.classList.add('thinking');
+  cont.innerHTML = `<div style="font-size:.6rem;color:var(--muted);display:flex;align-items:center;gap:6px">Analyzing<span class="ai-dots"><span>.</span><span>.</span><span>.</span></span></div>`;
+
+  const tmp = document.createElement('canvas');
+  tmp.width = cvDraw.width; tmp.height = cvDraw.height;
+  const tc = tmp.getContext('2d');
+  tc.fillStyle = '#fff'; tc.fillRect(0,0,tmp.width,tmp.height);
+  tc.drawImage(cvDraw, 0, 0);
+  const b64 = tmp.toDataURL('image/jpeg', .7).split(',')[1];
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514', max_tokens: 200,
+        messages: [{ role:'user', content: [
+          { type:'image', source:{ type:'base64', media_type:'image/jpeg', data:b64 } },
+          { type:'text', text:'Guess what this drawing is. Reply ONLY in JSON: {"guess":"<thing>","confidence":"High/Medium/Low","detail":"<fun comment max 10 words>"}' }
+        ]}]
+      })
+    });
+    const data = await res.json();
+    const txt = data.content?.[0]?.text || '{}';
+    let obj; try { obj = JSON.parse(txt.replace(/```json|```/g,'').trim()); } catch(e) { obj = {guess:'Something creative!',confidence:'Medium',detail:'Keep drawing!'}; }
+    box.classList.remove('thinking');
+    cont.innerHTML = `<div class="ai-guess">${obj.guess||'?'}</div>
+      <div style="font-size:.56rem;color:var(--muted);text-align:center">Confidence: <b style="color:var(--green)">${obj.confidence||'?'}</b></div>
+      <div style="font-size:.55rem;color:var(--muted);text-align:center;margin-top:5px;line-height:1.5">${obj.detail||''}</div>`;
+    if (chalActive && obj.guess?.toLowerCase().includes(chalWord.toLowerCase().replace(/[^a-z]/g,''))) stopChallenge(true);
+  } catch(e) {
+    box.classList.remove('thinking');
+    cont.innerHTML = `<div style="font-size:.6rem;color:#ff4466">AI unavailable — try again</div>`;
+  }
+});
+document.getElementById('aiClose').addEventListener('click', () => {
+  document.getElementById('aiPanel').style.display = 'none'; aiOpen = false;
+});
+
+// ─────────────────────────────────────────────────────────────
+// 19. CHALLENGE MODE
+// ─────────────────────────────────────────────────────────────
+document.getElementById('chalBtn').addEventListener('click', () => {
+  if (chalActive) { stopChallenge(false); return; }
+  pushUndo(); clearAll();
+  chalWord = CHALLENGES[Math.floor(Math.random()*CHALLENGES.length)];
+  chalActive=true; chalSec=60;
+  document.getElementById('challengePanel').style.display = 'block';
+  updateChal();
+  chalTimer = setInterval(() => { chalSec--; updateChal(); if(chalSec<=0) stopChallenge(false); }, 1000);
+  document.getElementById('chalBtn').textContent = '🛑 Stop Challenge';
+  toast('Draw: ' + chalWord + ' — 60s!');
+});
+function updateChal() {
+  document.getElementById('challengePanel').textContent = `🎯 Draw: ${chalWord}  ⏱ ${chalSec}s`;
+}
+function stopChallenge(won) {
+  clearInterval(chalTimer); chalActive=false;
+  document.getElementById('challengePanel').style.display = 'none';
+  document.getElementById('chalBtn').textContent = '🎯 Challenge';
+  // Always rate the drawing when challenge ends
+  rateDrawing(chalWord, won, chalSec);
+}
+
+async function rateDrawing(word, won, secLeft) {
+  const overlay = document.getElementById('ovRating');
+  const box     = document.getElementById('ratingBox');
+  overlay.style.display = 'flex';
+
+  // Show analyzing state
+  box.innerHTML = `
+    <div class="rating-analyzing">
+      <div class="spinner"></div>
+      <div class="rating-title">🤖 AI is rating your drawing…</div>
+      <div class="rating-subtitle">Analyzing your ${word.replace(/[^a-zA-Z ]/g,'')} drawing</div>
+    </div>`;
+
+  // Capture canvas
+  const tmp = document.createElement('canvas');
+  tmp.width = cvDraw.width; tmp.height = cvDraw.height;
+  const tc = tmp.getContext('2d');
+  tc.fillStyle = '#fff'; tc.fillRect(0,0,tmp.width,tmp.height);
+  tc.drawImage(cvDraw, 0, 0);
+  const b64 = tmp.toDataURL('image/jpeg', .75).split(',')[1];
+
+  const wordClean = word.replace(/[^a-zA-Z ]/g,'').trim();
+  const timeUsed  = 60 - secLeft;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514', max_tokens: 400,
+        messages: [{ role:'user', content: [
+          { type:'image', source:{ type:'base64', media_type:'image/jpeg', data:b64 } },
+          { type:'text', text:`The user was asked to draw "${wordClean}" in 60 seconds. They used ${timeUsed} seconds. Rate their drawing.
+Reply ONLY in JSON (no markdown):
+{
+  "score": <number 1-10>,
+  "recognized": <true/false — did you recognize it as "${wordClean}"?>,
+  "accuracy": <number 0-100>,
+  "creativity": <number 0-100>,
+  "detail": <number 0-100>,
+  "speed": <number 0-100 — based on ${timeUsed}s used, faster=higher>,
+  "grade": "<A+/A/B/C/D/F>",
+  "feedback": "<2 sentences: what's good + one tip to improve>",
+  "emoji": "<single emoji that matches the drawing>"
+}` }
+        ]}]
+      })
+    });
+    const data = await res.json();
+    const txt = data.content?.[0]?.text || '{}';
+    let r;
+    try { r = JSON.parse(txt.replace(/```json|```/g,'').trim()); }
+    catch(e) { r = { score:5, recognized:false, accuracy:50, creativity:50, detail:50, speed:50, grade:'C', feedback:'Keep practicing!', emoji:'🎨' }; }
+
+    const score   = Math.max(1, Math.min(10, r.score || 5));
+    const stars   = Math.round(score / 2); // 1-5 stars
+    const gradeColors = { 'A+':'#39ff88','A':'#39ff88','B':'#00d4ff','C':'#ffe135','D':'#ff6b35','F':'#ff4466' };
+    const gradeCol = gradeColors[r.grade] || '#aaa';
+
+    const metricBar = (val, col) =>
+      `<div class="metric-bar"><div class="metric-fill" style="width:${val}%;background:${col}"></div></div>`;
+
+    box.innerHTML = `
+      <div class="rating-title" style="color:${won?'var(--green)':'var(--text)'}">
+        ${won ? '🎉 Challenge Won!' : chalSec<=0 ? '⏰ Time Up!' : '🏁 Challenge Over'}
+      </div>
+      <div class="rating-subtitle">Your drawing of <b style="color:var(--a2)">${wordClean}</b> — ${won?'AI recognized it!':'Here\'s your rating'}</div>
+
+      <div class="stars" id="starsRow">
+        ${'⭐'.repeat(5).split('').map((_,i)=>`<span class="star" id="star${i}">⭐</span>`).join('')}
+      </div>
+
+      <div style="display:flex;align-items:baseline;gap:8px">
+        <div class="score-num" style="color:${gradeCol}">${r.grade}</div>
+        <div style="display:flex;flex-direction:column">
+          <div class="score-label">${score}/10</div>
+          <div style="font-size:.55rem;color:var(--muted)">${r.recognized ? '✅ AI recognized it!' : '❌ AI didn\'t recognize it'}</div>
+        </div>
+        <div style="font-size:2.5rem;margin-left:8px">${r.emoji||'🎨'}</div>
+      </div>
+
+      <div class="rating-grid">
+        <div class="rating-metric">
+          <div class="metric-label">Accuracy</div>
+          ${metricBar(r.accuracy,'#ff6b35')}
+          <div class="metric-val" style="color:#ff6b35">${r.accuracy}%</div>
+        </div>
+        <div class="rating-metric">
+          <div class="metric-label">Creativity</div>
+          ${metricBar(r.creativity,'#b44fff')}
+          <div class="metric-val" style="color:#b44fff">${r.creativity}%</div>
+        </div>
+        <div class="rating-metric">
+          <div class="metric-label">Detail</div>
+          ${metricBar(r.detail,'#00d4ff')}
+          <div class="metric-val" style="color:#00d4ff">${r.detail}%</div>
+        </div>
+        <div class="rating-metric">
+          <div class="metric-label">Speed</div>
+          ${metricBar(r.speed,'#39ff88')}
+          <div class="metric-val" style="color:#39ff88">${timeUsed}s</div>
+        </div>
+      </div>
+
+      <div class="rating-feedback">${r.feedback||'Keep drawing!'}</div>
+
+      <div class="rating-btns">
+        <button class="rbtn primary" id="ratingTryAgain">🔄 Try Again</button>
+        <button class="rbtn secondary" id="ratingKeep">✏️ Keep Drawing</button>
+      </div>`;
+
+    // Animate stars with delay
+    for (let i = 0; i < stars; i++) {
+      setTimeout(() => {
+        const el = document.getElementById('star'+i);
+        if (el) el.classList.add('on');
+      }, 200 + i*150);
+    }
+
+    document.getElementById('ratingTryAgain').addEventListener('click', () => {
+      overlay.style.display = 'none';
+      // Auto-start new challenge with same word
+      pushUndo(); clearAll();
+      chalWord = CHALLENGES[Math.floor(Math.random()*CHALLENGES.length)];
+      chalActive=true; chalSec=60;
+      document.getElementById('challengePanel').style.display = 'block';
+      updateChal();
+      chalTimer = setInterval(()=>{ chalSec--; updateChal(); if(chalSec<=0) stopChallenge(false); }, 1000);
+      document.getElementById('chalBtn').textContent = '🛑 Stop Challenge';
+      toast('New challenge: ' + chalWord);
+    });
+    document.getElementById('ratingKeep').addEventListener('click', () => {
+      overlay.style.display = 'none';
+    });
+
+  } catch(e) {
+    box.innerHTML = `
+      <div class="rating-title">Rating unavailable</div>
+      <div class="rating-subtitle">Couldn't connect to AI — your drawing looks great though!</div>
+      <div class="rating-btns">
+        <button class="rbtn primary" id="ratingClose2">✏️ Keep Drawing</button>
+      </div>`;
+    document.getElementById('ratingClose2').addEventListener('click', () => { overlay.style.display='none'; });
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// 20. DOWNLOAD + MODE SELECTION
+// ─────────────────────────────────────────────────────────────
+document.getElementById('downloadBtn').addEventListener('click', () => {
+  const blob = new Blob([document.documentElement.outerHTML], { type:'text/html' });
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='AirDrawing.html'; a.click(); toast('Saved! Open in Chrome ✋');
+});
+document.getElementById('backBtn').addEventListener('click', () => {
+  document.getElementById('ovIframe').style.display='none';
+  document.getElementById('ovStart').style.display='flex';
+});
+document.getElementById('mouseMode').addEventListener('click', () => {
+  document.getElementById('ovStart').style.display='none'; activateMouse();
+});
+document.getElementById('camMode').addEventListener('click', () => {
+  document.getElementById('ovStart').style.display='none'; activateCamera();
+});
+</script>
+</body>
+</html>
