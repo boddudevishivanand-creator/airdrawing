@@ -18,7 +18,7 @@ This project allows users to draw in the air using hand gestures captured throug
 ## ▶️ How to Run
 
 ```bash
-git clone https://github.com/your-username/airdrawing.git
+git clone https://github.com/boddudevishivanand/airdrawing.git
 cd airdrawing
 pip install -r requirements.txt
 python main.py
